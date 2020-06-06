@@ -1,4 +1,4 @@
-module common
+module github.com/yusuke0701/common/go
 
 go 1.14
 
