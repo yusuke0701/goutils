@@ -1,0 +1,48 @@
+version: 2.1
+
+executors:
+  go-executor:
+    working_directory: ~/app
+    docker:
+      - image: circleci/golang:1.14
+    resource_class: small
+
+jobs:
+  go-lint:
+    executor: go-executor
+    parameters:
+      cache_key:
+        type: string
+      cache_version:
+        type: string
+      working_dir:
+        type: string
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - << parameters.cache_key >>
+            - << parameters.cache_version >>
+      - run:
+          name: download go modules
+          command: go mod download
+          working_directory: << parameters.working_dir >>
+      - save_cache:
+          key: << parameters.cache_key >>
+          paths:
+            - /go/pkg/mod
+      - run:
+          name: Install GolangCI-Lint
+          command: curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.26.0
+      - run:
+          name: Run GolangCI-Lint
+          command: golangci-lint run --disable-all --enable=goimports --enable=golint --enable=govet --enable=errcheck --enable=staticcheck ./...
+          working_directory: << parameters.working_dir >>
+
+workflows:
+  check-code:
+    jobs:
+      - go-lint:
+          working_dir: go
+          cache_key: go-mod-{{ .Environment.CACHE_KEY }}-{{ checksum "server/go.mod" }}
+          cache_version: go-mod-{{ .Environment.CACHE_KEY }}
