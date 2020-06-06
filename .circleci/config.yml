@@ -1,15 +1,11 @@
 version: 2.1
 
-executors:
-  go-executor:
+jobs:
+  lint:
     working_directory: ~/app
     docker:
       - image: circleci/golang:1.14
     resource_class: small
-
-jobs:
-  go-lint:
-    executor: go-executor
     parameters:
       cache_key:
         type: string
@@ -42,7 +38,7 @@ jobs:
 workflows:
   check-code:
     jobs:
-      - go-lint:
+      - lint:
           working_dir: go
           cache_key: go-mod-{{ .Environment.CACHE_KEY }}-{{ checksum "server/go.mod" }}
           cache_version: go-mod-{{ .Environment.CACHE_KEY }}

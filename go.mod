@@ -1,4 +1,4 @@
-module github.com/yusuke0701/common/go
+module github.com/yusuke0701/goutils
 
 go 1.14
 
