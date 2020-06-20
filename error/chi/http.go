@@ -1,4 +1,4 @@
-package error
+package chi
 
 import (
 	"context"
