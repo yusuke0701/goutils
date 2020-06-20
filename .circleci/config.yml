@@ -11,8 +11,6 @@ jobs:
         type: string
       cache_version:
         type: string
-      working_dir:
-        type: string
     steps:
       - checkout
       - restore_cache:
@@ -22,7 +20,6 @@ jobs:
       - run:
           name: download go modules
           command: go mod download
-          working_directory: << parameters.working_dir >>
       - save_cache:
           key: << parameters.cache_key >>
           paths:
@@ -33,12 +30,10 @@ jobs:
       - run:
           name: Run GolangCI-Lint
           command: golangci-lint run --disable-all --enable=goimports --enable=golint --enable=govet --enable=errcheck --enable=staticcheck ./...
-          working_directory: << parameters.working_dir >>
 
 workflows:
   check-code:
     jobs:
       - lint:
-          working_dir: go
-          cache_key: go-mod-{{ .Environment.CACHE_KEY }}-{{ checksum "server/go.mod" }}
+          cache_key: go-mod-{{ .Environment.CACHE_KEY }}-{{ checksum "go.mod" }}
           cache_version: go-mod-{{ .Environment.CACHE_KEY }}
