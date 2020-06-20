@@ -8,5 +8,6 @@ require (
 	cloud.google.com/go/storage v1.10.0
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/go-chi/render v1.0.1
+	github.com/google/uuid v1.1.1
 	google.golang.org/api v0.28.0
 )
