@@ -1,4 +1,4 @@
-package googleapi
+package userinfo
 
 import (
 	"encoding/json"
@@ -7,17 +7,31 @@ import (
 	"net/http"
 )
 
-// UserInfoAPIRes は、UserInfoMeAPIのjson形式でのレスポンス構造体を表す。
-type UserInfoAPIRes struct {
+// Helper は、APIを呼び出すためのインタフェースです。
+type Helper interface {
+	CallUserInfoMeAPI(token string) (*CallUserInfoMeAPIRes, error)
+}
+
+// NewHelper は、Helperを作成するための関数です。
+func NewHelper(c *http.Client) Helper {
+	return &helper{httpClient: c}
+}
+
+type helper struct {
+	httpClient *http.Client
+}
+
+// CallUserInfoMeAPIRes は、UserInfoMeAPIのjson形式でのレスポンス構造体を表す。
+type CallUserInfoMeAPIRes struct {
 	ID            string `json:"id"`
 	Email         string `json:"email"`
 	VerifiedEmail bool   `json:"verified_email"`
 	Picture       string `json:"picture"`
 }
 
-// CallUserInfoMeAPI は、自分のユーザー情報を取得するAPIを呼び出す
+// CallUserInfoMeAPI は、自分のユーザー情報を取得するAPIを呼び出す。
 // ref: https://any-api.com/googleapis_com/oauth2/console/userinfo/oauth2_userinfo_v2_me_get
-func CallUserInfoMeAPI(httpClient *http.Client, token string) (*UserInfoAPIRes, error) {
+func (h *helper) CallUserInfoMeAPI(token string) (*CallUserInfoMeAPIRes, error) {
 	req, err := http.NewRequest(http.MethodGet, "https://www.googleapis.com/userinfo/v2/me", nil)
 	if err != nil {
 		return nil, err
@@ -27,7 +41,7 @@ func CallUserInfoMeAPI(httpClient *http.Client, token string) (*UserInfoAPIRes, 
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 
-	res, err := httpClient.Do(req)
+	res, err := h.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -42,9 +56,9 @@ func CallUserInfoMeAPI(httpClient *http.Client, token string) (*UserInfoAPIRes, 
 		return nil, fmt.Errorf("failed to call user info api: %s", string(b))
 	}
 
-	userInfoAPIRes := new(UserInfoAPIRes)
-	if err := json.Unmarshal(b, userInfoAPIRes); err != nil {
+	apiRes := new(CallUserInfoMeAPIRes)
+	if err := json.Unmarshal(b, apiRes); err != nil {
 		return nil, err
 	}
-	return userInfoAPIRes, nil
+	return apiRes, nil
 }
