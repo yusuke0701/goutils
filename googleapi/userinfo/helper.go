@@ -10,11 +10,15 @@ import (
 // Helper は、APIを呼び出すためのインタフェースです。
 type Helper interface {
 	CallUserInfoMeAPI(token string) (*CallUserInfoMeAPIRes, error)
+	RemoveCache()
 }
 
 // NewHelper は、Helperを作成するための関数です。
 // enableCache を true にすると、APIの結果をローカルのキャッシュにします。
 func NewHelper(c *http.Client, enableCache bool) Helper {
+	if enableCache && _userInfoMeAPIResCache == nil {
+		_userInfoMeAPIResCache = make(map[string]*CallUserInfoMeAPIRes, 100)
+	}
 	return &helper{httpClient: c, enableCache: enableCache}
 }
 
@@ -74,4 +78,9 @@ func (h *helper) CallUserInfoMeAPI(token string) (*CallUserInfoMeAPIRes, error) 
 		_userInfoMeAPIResCache[token] = apiRes
 	}
 	return apiRes, nil
+}
+
+// RemoveCache は、ローカルに保存したキャッシュを削除する
+func (helper) RemoveCache() {
+	_userInfoMeAPIResCache = make(map[string]*CallUserInfoMeAPIRes, 100)
 }

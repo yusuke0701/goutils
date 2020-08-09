@@ -26,3 +26,5 @@ func (mockHelper) CallUserInfoMeAPI(token string) (*CallUserInfoMeAPIRes, error)
 	}
 	return nil, nil
 }
+
+func (mockHelper) RemoveCache() {}
