@@ -13,13 +13,17 @@ type Helper interface {
 }
 
 // NewHelper は、Helperを作成するための関数です。
-func NewHelper(c *http.Client) Helper {
-	return &helper{httpClient: c}
+// enableCache を true にすると、APIの結果をローカルのキャッシュにします。
+func NewHelper(c *http.Client, enableCache bool) Helper {
+	return &helper{httpClient: c, enableCache: enableCache}
 }
 
 type helper struct {
-	httpClient *http.Client
+	httpClient  *http.Client
+	enableCache bool
 }
+
+var _userInfoMeAPIResCache map[string]*CallUserInfoMeAPIRes
 
 // CallUserInfoMeAPIRes は、UserInfoMeAPIのjson形式でのレスポンス構造体を表す。
 type CallUserInfoMeAPIRes struct {
@@ -32,6 +36,12 @@ type CallUserInfoMeAPIRes struct {
 // CallUserInfoMeAPI は、自分のユーザー情報を取得するAPIを呼び出す。
 // ref: https://any-api.com/googleapis_com/oauth2/console/userinfo/oauth2_userinfo_v2_me_get
 func (h *helper) CallUserInfoMeAPI(token string) (*CallUserInfoMeAPIRes, error) {
+	if h.enableCache {
+		value, ok := _userInfoMeAPIResCache[token]
+		if ok {
+			return value, nil
+		}
+	}
 	req, err := http.NewRequest(http.MethodGet, "https://www.googleapis.com/userinfo/v2/me", nil)
 	if err != nil {
 		return nil, err
@@ -59,6 +69,9 @@ func (h *helper) CallUserInfoMeAPI(token string) (*CallUserInfoMeAPIRes, error) 
 	apiRes := new(CallUserInfoMeAPIRes)
 	if err := json.Unmarshal(b, apiRes); err != nil {
 		return nil, err
+	}
+	if h.enableCache {
+		_userInfoMeAPIResCache[token] = apiRes
 	}
 	return apiRes, nil
 }
