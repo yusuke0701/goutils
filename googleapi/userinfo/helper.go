@@ -15,19 +15,18 @@ type Helper interface {
 
 // NewHelper は、Helperを作成するための関数です。
 // enableCache を true にすると、APIの結果をローカルのキャッシュにします。
-func NewHelper(c *http.Client, enableCache bool) Helper {
-	if enableCache && _userInfoMeAPIResCache == nil {
-		_userInfoMeAPIResCache = make(map[string]*CallUserInfoMeAPIRes, 100)
-	}
-	return &helper{httpClient: c, enableCache: enableCache}
+// cacheSize は、保存するキャッシュの初期サイズです。足りなくなると、自動で増加します。
+func NewHelper(c *http.Client, enableCache bool, cacheSize int) Helper {
+	return &helper{httpClient: c, enableCache: enableCache, userInfoMeAPIResCache: make(map[string]*CallUserInfoMeAPIRes, cacheSize)}
 }
 
 type helper struct {
 	httpClient  *http.Client
 	enableCache bool
-}
+	cacheSize   int
 
-var _userInfoMeAPIResCache map[string]*CallUserInfoMeAPIRes
+	userInfoMeAPIResCache map[string]*CallUserInfoMeAPIRes
+}
 
 // CallUserInfoMeAPIRes は、UserInfoMeAPIのjson形式でのレスポンス構造体を表す。
 type CallUserInfoMeAPIRes struct {
@@ -41,7 +40,7 @@ type CallUserInfoMeAPIRes struct {
 // ref: https://any-api.com/googleapis_com/oauth2/console/userinfo/oauth2_userinfo_v2_me_get
 func (h *helper) CallUserInfoMeAPI(token string) (*CallUserInfoMeAPIRes, error) {
 	if h.enableCache {
-		value, ok := _userInfoMeAPIResCache[token]
+		value, ok := h.userInfoMeAPIResCache[token]
 		if ok {
 			return value, nil
 		}
@@ -75,12 +74,12 @@ func (h *helper) CallUserInfoMeAPI(token string) (*CallUserInfoMeAPIRes, error) 
 		return nil, err
 	}
 	if h.enableCache {
-		_userInfoMeAPIResCache[token] = apiRes
+		h.userInfoMeAPIResCache[token] = apiRes
 	}
 	return apiRes, nil
 }
 
-// RemoveCache は、ローカルに保存したキャッシュを削除する
-func (helper) RemoveCache() {
-	_userInfoMeAPIResCache = make(map[string]*CallUserInfoMeAPIRes, 100)
+// RemoveCache は、保存したキャッシュを削除する
+func (h *helper) RemoveCache() {
+	h.userInfoMeAPIResCache = make(map[string]*CallUserInfoMeAPIRes, h.cacheSize)
 }
