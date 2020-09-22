@@ -17,9 +17,19 @@ var (
 func Setup(ctx context.Context, ak string) (err error) {
 	app, err = fb.NewApp(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("failed to make firebase clinet: %v", err)
+		return fmt.Errorf("failed to make firebase client: %v", err)
 	}
 	apiKey = ak
+	return nil
+}
+
+// SetupWithoutAPIKey setup a client to access the Firebase.
+// Use this function if you don't use the Firebase api key.
+func SetupWithoutAPIKey(ctx context.Context) (err error) {
+	app, err = fb.NewApp(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to make firebase client: %v", err)
+	}
 	return nil
 }
 

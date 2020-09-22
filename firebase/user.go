@@ -52,3 +52,13 @@ func GetUserByEmail(ctx context.Context, email string) (*auth.UserRecord, error)
 	}
 	return u, nil
 }
+
+// VerifyIDToken verifies the signature	and payload of the provided ID token.
+func VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error) {
+	c, err := getAuthClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.VerifyIDToken(ctx, idToken)
+}
